@@ -1,0 +1,100 @@
+
+
+
+#
+# A board is represented by a list of lists
+#
+#  board = [[row_bottom, row_1, row_2, ..., row_top],
+#           [row1, row2, row3], ...]
+#
+#  The board is always full, but empty spaces are
+#  None
+#
+#
+# The first index picks a column
+# The second index picks a row
+#
+# Boards have 7 columns and 6 rows
+#
+
+RED = 0
+YELLOW = 1
+
+NUM_COLUMNS = 7
+NUM_ROWS = 6
+
+
+def create_board():
+    return [[None for _ in range(NUM_ROWS)]
+            for _ in range(NUM_COLUMNS)]
+
+
+def get_top(col):
+    for idx, item in enumerate(col):
+        if item is None:
+            return idx
+    return idx
+
+def play(board, column, color):
+    """
+    Updates the board in place,
+    adding the given color piece to
+    the given column (dropping it to the top).
+    If the column is already full, throws an exception
+    """
+    col = board[column]
+    top_idx = get_top(col)
+    if top_idx == NUM_ROWS-1:
+        raise Exception("Cannot Play")
+    else:
+        col[top_idx] = color
+
+
+def can_play(board, column):
+    col = board[column]
+    return get_top(col) < NUM_ROWS
+
+
+def is_winner(board, color):
+    # check horizontal spaces
+    for y in range(NUM_ROWS):
+        for x in range(NUM_COLUMNS - 3):
+            if board[x][y] == tile and board[x+1][y] == tile and board[x+2][y] == tile and board[x+3][y] == tile:
+                return True
+
+    # check vertical spaces
+    for x in range(NUM_COLUMNS):
+        for y in range(NUM_ROWS - 3):
+            if board[x][y] == tile and board[x][y+1] == tile and board[x][y+2] == tile and board[x][y+3] == tile:
+                return True
+
+    # check / diagonal spaces
+    for x in range(NUM_COLUMNS - 3):
+        for y in range(3, NUM_ROWS):
+            if board[x][y] == tile and board[x+1][y-1] == tile and board[x+2][y-2] == tile and board[x+3][y-3] == tile:
+                return True
+
+    # check \ diagonal spaces
+    for x in range(NUM_COLUMNS - 3):
+        for y in range(NUM_ROWS - 3):
+            if board[x][y] == tile and board[x+1][y+1] == tile and board[x+2][y+2] == tile and board[x+3][y+3] == tile:
+                return True
+
+    return False
+
+
+
+def draw(board):
+
+    def show(x):
+        if x is None:
+            return '_'
+        else:
+            return str(x)
+    
+    rows = []
+
+    for row_idx in reversed(range(NUM_ROWS)):
+        rows.append('\t'.join([show(board[col_idx][row_idx]) for col_idx in range(NUM_COLUMNS)]))
+
+    return '\n'.join(rows)
