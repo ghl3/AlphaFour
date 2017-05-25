@@ -17,8 +17,8 @@
 # Boards have 7 columns and 6 rows
 #
 
-RED = 0
-YELLOW = 1
+RED = 'R'
+YELLOW = 'Y'
 
 NUM_COLUMNS = 7
 NUM_ROWS = 6
@@ -35,6 +35,7 @@ def get_top(col):
             return idx
     return idx
 
+
 def play(board, column, color):
     """
     Updates the board in place,
@@ -44,7 +45,7 @@ def play(board, column, color):
     """
     col = board[column]
     top_idx = get_top(col)
-    if top_idx == NUM_ROWS-1:
+    if top_idx == NUM_ROWS:
         raise Exception("Cannot Play")
     else:
         col[top_idx] = color
@@ -59,26 +60,26 @@ def is_winner(board, color):
     # check horizontal spaces
     for y in range(NUM_ROWS):
         for x in range(NUM_COLUMNS - 3):
-            if board[x][y] == tile and board[x+1][y] == tile and board[x+2][y] == tile and board[x+3][y] == tile:
-                return True
+            if board[x][y] == color and board[x+1][y] == color and board[x+2][y] == color and board[x+3][y] == color:
+                return True, 'HORIZONTAL'
 
     # check vertical spaces
     for x in range(NUM_COLUMNS):
         for y in range(NUM_ROWS - 3):
-            if board[x][y] == tile and board[x][y+1] == tile and board[x][y+2] == tile and board[x][y+3] == tile:
-                return True
-
-    # check / diagonal spaces
-    for x in range(NUM_COLUMNS - 3):
-        for y in range(3, NUM_ROWS):
-            if board[x][y] == tile and board[x+1][y-1] == tile and board[x+2][y-2] == tile and board[x+3][y-3] == tile:
-                return True
+            if board[x][y] == color and board[x][y+1] == color and board[x][y+2] == color and board[x][y+3] == color:
+                return True, 'VERTICAL'
 
     # check \ diagonal spaces
-    for x in range(NUM_COLUMNS - 3):
+    for x in range(3, NUM_COLUMNS):
         for y in range(NUM_ROWS - 3):
-            if board[x][y] == tile and board[x+1][y+1] == tile and board[x+2][y+2] == tile and board[x+3][y+3] == tile:
-                return True
+            if board[x][y] == color and board[x-1][y+1] == color and board[x-2][y+2] == color and board[x-3][y+3] == color:
+                return True, 'DIAG1'
+
+    # check / diagonal spaces
+    for x in range(0, NUM_COLUMNS-3):
+        for y in range(NUM_ROWS - 3):
+            if board[x][y] == color and board[x+1][y+1] == color and board[x+2][y+2] == color and board[x+3][y+3] == color:
+                return True, 'DIAG2'
 
     return False
 
@@ -91,9 +92,8 @@ def draw(board):
             return '_'
         else:
             return str(x)
-    
-    rows = []
 
+    rows = []
     for row_idx in reversed(range(NUM_ROWS)):
         rows.append('\t'.join([show(board[col_idx][row_idx]) for col_idx in range(NUM_COLUMNS)]))
 
