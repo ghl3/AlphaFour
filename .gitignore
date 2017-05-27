@@ -1,1 +1,4 @@
 *.pyc
+*.txt
+.ipynb_checkpoints
+venv

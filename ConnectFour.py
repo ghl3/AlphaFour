@@ -61,25 +61,25 @@ def is_winner(board, color):
     for y in range(NUM_ROWS):
         for x in range(NUM_COLUMNS - 3):
             if board[x][y] == color and board[x+1][y] == color and board[x+2][y] == color and board[x+3][y] == color:
-                return True, 'HORIZONTAL'
+                return True
 
     # check vertical spaces
     for x in range(NUM_COLUMNS):
         for y in range(NUM_ROWS - 3):
             if board[x][y] == color and board[x][y+1] == color and board[x][y+2] == color and board[x][y+3] == color:
-                return True, 'VERTICAL'
+                return True
 
     # check \ diagonal spaces
     for x in range(3, NUM_COLUMNS):
         for y in range(NUM_ROWS - 3):
             if board[x][y] == color and board[x-1][y+1] == color and board[x-2][y+2] == color and board[x-3][y+3] == color:
-                return True, 'DIAG1'
+                return True
 
     # check / diagonal spaces
     for x in range(0, NUM_COLUMNS-3):
         for y in range(NUM_ROWS - 3):
             if board[x][y] == color and board[x+1][y+1] == color and board[x+2][y+2] == color and board[x+3][y+3] == color:
-                return True, 'DIAG2'
+                return True
 
     return False
 
@@ -98,3 +98,7 @@ def draw(board):
         rows.append('\t'.join([show(board[col_idx][row_idx]) for col_idx in range(NUM_COLUMNS)]))
 
     return '\n'.join(rows)
+
+
+def clone(board):
+    return [[x for x in col] for col in board]
