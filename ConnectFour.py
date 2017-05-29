@@ -102,3 +102,25 @@ def draw(board):
 
 def clone(board):
     return [[x for x in col] for col in board]
+
+
+def _to_int(x, current_player):
+    if x == current_player:
+        return 1
+    elif x is None:
+        return 0
+    else:
+        return -1
+
+def get_features_from_turn(current_player, board):
+    return [_to_int(x, current_player) for col in board for x in col]
+
+def get_target_from_turn(current_player, board, winner):
+    if winner==current_player:
+        return [1, 0, 0]
+    elif winner is None:
+        return [0, 0, 1]
+    else:
+        return [0, 1, 0]
+
+

@@ -67,28 +67,6 @@ def random_game():
         except Exception as e:
             return boards, None
 
-
-def _to_int(x, current_player):
-    if x == current_player:
-        return 1
-    elif x is None:
-        return 0
-    else:
-        return -1
-
-
-def get_features_from_turn(current_player, board, winner):
-    features = [_to_int(x, current_player) for col in board for x in col]
-    if winner==current_player:
-        target = [1, 0, 0]
-    elif winner is None:
-        target = [0, 0, 1]
-    else:
-        target = [0, 1, 0]
-    #target = [[1, 0, 0] if _to_int(winner, current_player)
-    return features, target
-
-
 def get_features_from_game(player_board_pairs, winner):
 
     # The current player's disks ar 1
@@ -97,7 +75,8 @@ def get_features_from_game(player_board_pairs, winner):
     game_features = []
     game_targets = []
     for current, board in player_board_pairs:
-        features, target = get_features_from_turn(current, board, winner)
+        features = cf.get_features_from_turn(current, board)
+        target = cf.get_target_from_turn(current, board, winner)
         game_features.append(features)
         game_targets.append(target)
 
