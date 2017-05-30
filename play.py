@@ -8,6 +8,7 @@ from random import randint
 import numpy as np
 import tensorflow as tf
 
+import argparse
 
 class Model(object):
 
@@ -30,7 +31,7 @@ class AI(Model):
         with graph.as_default() as g:
             saver = tf.train.import_meta_graph('./models/{}/model.meta'.format(model_path))
             saver.restore(sess, tf.train.latest_checkpoint('./models/{}/'.format(model_path)))
-            prediction = graph.get_operation_by_name("predictions/preds/Softmax").values()[0]
+            prediction = graph.get_operation_by_name("preds/Softmax").values()[0]
             board = graph.get_operation_by_name("board").values()[0]
 
         self.sess = sess
@@ -83,29 +84,41 @@ def play(player_first, model):
     computer = cf.YELLOW
 
     board = cf.create_board()
-    print cf.draw(board)
 
     while True:
 
-        player_move = input('Next move (Enter 0-7): \n')
-        cf.play(board, player_move, player)
-        print 'PLAYER MOVE: \n'
         print cf.draw(board)
+        print "\t".join(map(str, range(0, 7)))
+        player_move = input('Next move (Enter 0-7): \n')
+
+        cf.play(board, player_move, player)
         if cf.is_winner(board, player):
+            print cf.draw(board)
             print "PLAYER WINS"
             return
 
         computer_move = model.get_move(board, computer)
-        #computer_move = randint(0, cf.NUM_COLUMNS-1)
         cf.play(board, computer_move, computer)
-        print 'COMPUTER MOVE: \n'
-        print cf.draw(board)
         if cf.is_winner(board, computer):
+            print cf.draw(board)
             print "COMPUTER WINS"
             return
 
 
 if __name__ == '__main__':
-    play(True, AI('cov2d_2017_05_29_14:37:42'))
+
+
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--model', type=str, required=True,
+                        help="Model to play again.  Options are ('random' or a name in the './models' directory")
+
+    args = parser.parse_args()
+
+    if args.model == 'random':
+        model = RandomModel()
+    else:
+        model = AI(args.model)
+
+    play(True, model)
 
 

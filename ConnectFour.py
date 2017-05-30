@@ -53,8 +53,17 @@ def play(board, column, color):
 
 def can_play(board, column):
     col = board[column]
-    return get_top(col) < NUM_ROWS
+    # If we added one to the top,
+    # would it be higher than the allowed
+    # number of rows?
+    return get_top(col)+1 < NUM_ROWS
 
+
+def is_tie(board):
+    for i in range(len(board)):
+        if can_play(board, i):
+            return False
+    return True
 
 def is_winner(board, color):
     # check horizontal spaces

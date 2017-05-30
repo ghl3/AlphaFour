@@ -17,13 +17,13 @@ def main():
     args = parser.parse_args()
     features, targets = generate_training_data(args.num_games)
 
-    features_path = "{}features.txt".format(args.output_prefix)
+    features_path = "{}features.csv".format(args.output_prefix)
     with open(features_path, 'w+') as f:
         for row in features:
             f.write(",".join([str(x) for x in row]))
             f.write('\n')
 
-    targets_path = "{}targets.txt".format(args.output_prefix)
+    targets_path = "{}targets.csv".format(args.output_prefix)
     with open(targets_path, 'w+') as f:
         for row in targets:
             f.write(",".join([str(x) for x in row]))
@@ -50,7 +50,10 @@ def random_game():
 
         boards.append((current, cf.clone(board)))
 
-        if cf.is_winner(board, cf.RED):
+        if cf.is_tie(board):
+            return boards, None
+
+        elif cf.is_winner(board, cf.RED):
             return boards, cf.RED
 
         elif cf.is_winner(board, cf.YELLOW):
@@ -62,10 +65,8 @@ def random_game():
             if cf.can_play(board, to_play):
                 break
 
-        try:
-            cf.play(board, to_play, current)
-        except Exception as e:
-            return boards, None
+        cf.play(board, to_play, current)
+
 
 def get_features_from_game(player_board_pairs, winner):
 
@@ -88,7 +89,11 @@ def generate_training_data(num_games=1000):
     all_features = []
     all_targets = []
 
-    for _ in range(num_games):
+    for i in range(num_games):
+
+        if i % 1000 == 0:
+            print "Generating Game: {}".format(i)
+
         plays, winner = random_game()
 
         game_features, game_targets = get_features_from_game(plays, winner)
