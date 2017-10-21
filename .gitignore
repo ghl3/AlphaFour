@@ -4,3 +4,6 @@
 venv
 train
 models
+.idea
+junk
+simulations

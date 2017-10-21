@@ -1,0 +1,22 @@
+
+
+
+Components:
+
+- Simulation (computer vs computer)
+
+- Interactive Game Playing (computer vs human)
+
+- Training (building neural netowrk)
+
+
+
+Files:
+
+- ConnectFour.py: The actual game, coded in python.
+
+- play.py: Start an Interactive Game (compuer vs Human)
+
+- simulate.py: Run a number of simulation games between two different models
+
+- extract_features.py: Takes a directory of model runs and convers them into features

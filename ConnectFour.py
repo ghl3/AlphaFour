@@ -36,6 +36,11 @@ def get_top(col):
     return idx
 
 
+
+def clone_board(board):
+    return [x[:] for x in board]
+
+
 def play(board, column, color):
     """
     Updates the board in place,
@@ -43,12 +48,17 @@ def play(board, column, color):
     the given column (dropping it to the top).
     If the column is already full, throws an exception
     """
+
+    board = clone_board(board)
+
     col = board[column]
     top_idx = get_top(col)
     if top_idx == NUM_ROWS:
         raise Exception("Cannot Play")
     else:
         col[top_idx] = color
+
+    return board
 
 
 def can_play(board, column):
