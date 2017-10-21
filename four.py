@@ -1,4 +1,6 @@
+import os
 import json
+import glob
 
 import argparse
 
@@ -90,12 +92,17 @@ def simulate(args):
     red_model = ai.load_model(args.red_model)
     yellow_model = ai.load_model(args.yellow_model)
 
+    prefix_base_path = make_base_dir(args.output_prefix)
+
+    # prefix_base_path = os.path.dirname(args.output_prefix)
+    # os.makedirs(prefix_base_path)
+
     with open('{}metadata.txt'.format(args.output_prefix), 'w+') as f:
         f.write("Red Model:{}\nYellow Model: {}\n".format(args.red_model, args.yellow_model))
 
     for i in range(args.num_games):
 
-        if i % 1000 == 0:
+        if i % 1000 == 0 and i > 0:
             print "Generating Game: {}".format(i)
 
         results = ai.play_game(red_model, yellow_model)
@@ -111,7 +118,7 @@ def simulate(args):
             # all_features.extend(game_features)
             # all_targets.extend(game_targets)
 
-    print "All Games Run"
+    print "All Games Run.  Saved to: {}".format(prefix_base_path)
 
 
 def visualize(args):
@@ -147,15 +154,25 @@ def process(args):
     all_features = []
     all_targets = []
 
-    for game_file in args.games:
-        with open(game_file) as f:
-            game_data = json.loads(f.read())
+    idx = 0
 
-            game_features, game_targets = get_features_from_game(game_data['turns'], game_data['winner'])
-            all_features.extend(game_features)
-            all_targets.extend(game_targets)
+    for game_glob in args.games:
+        for file in glob.glob(game_glob):
+
+            idx += 1
+            if idx % 1000 == 0 and idx > 0:
+                print "Processing Game: {}".format(idx)
+
+            with open(file) as f:
+                game_data = json.loads(f.read())
+
+                game_features, game_targets = get_features_from_game(game_data['turns'], game_data['winner'])
+                all_features.extend(game_features)
+                all_targets.extend(game_targets)
 
     # Features are saved as a CSV
+
+    prefix_base_path = make_base_dir(args.output_prefix)
 
     with open('{}features.csv'.format(args.output_prefix), 'w+') as f:
         for row in all_features:
@@ -167,6 +184,15 @@ def process(args):
             f.write(','.join([str(i) for i in row]))
             f.write('\n')
 
+
+def make_base_dir(prefix):
+    prefix_base_path = os.path.dirname(prefix)
+    try:
+        os.makedirs(prefix_base_path)
+    except OSError:
+        pass
+
+    return prefix_base_path
 
 
 if __name__ == '__main__':
