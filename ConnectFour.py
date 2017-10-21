@@ -1,6 +1,3 @@
-
-
-
 #
 # A board is represented by a list of lists
 #
@@ -36,9 +33,12 @@ def get_top(col):
     return idx
 
 
-
 def clone_board(board):
     return [x[:] for x in board]
+
+
+def clone(board):
+    return [[x for x in col] for col in board]
 
 
 def play(board, column, color):
@@ -66,7 +66,7 @@ def can_play(board, column):
     # If we added one to the top,
     # would it be higher than the allowed
     # number of rows?
-    return get_top(col)+1 < NUM_ROWS
+    return get_top(col) + 1 < NUM_ROWS
 
 
 def is_tie(board):
@@ -75,37 +75,48 @@ def is_tie(board):
             return False
     return True
 
+
 def is_winner(board, color):
     # check horizontal spaces
     for y in range(NUM_ROWS):
         for x in range(NUM_COLUMNS - 3):
-            if board[x][y] == color and board[x+1][y] == color and board[x+2][y] == color and board[x+3][y] == color:
+            if board[x][y] == color \
+                    and board[x + 1][y] == color \
+                    and board[x + 2][y] == color \
+                    and board[x + 3][y] == color:
                 return True
 
     # check vertical spaces
     for x in range(NUM_COLUMNS):
         for y in range(NUM_ROWS - 3):
-            if board[x][y] == color and board[x][y+1] == color and board[x][y+2] == color and board[x][y+3] == color:
+            if board[x][y] == color \
+                    and board[x][y + 1] == color \
+                    and board[x][y + 2] == color \
+                    and board[x][y + 3] == color:
                 return True
 
     # check \ diagonal spaces
     for x in range(3, NUM_COLUMNS):
         for y in range(NUM_ROWS - 3):
-            if board[x][y] == color and board[x-1][y+1] == color and board[x-2][y+2] == color and board[x-3][y+3] == color:
+            if board[x][y] == color \
+                    and board[x - 1][y + 1] == color \
+                    and board[x - 2][y + 2] == color \
+                    and board[x - 3][y + 3] == color:
                 return True
 
     # check / diagonal spaces
-    for x in range(0, NUM_COLUMNS-3):
+    for x in range(0, NUM_COLUMNS - 3):
         for y in range(NUM_ROWS - 3):
-            if board[x][y] == color and board[x+1][y+1] == color and board[x+2][y+2] == color and board[x+3][y+3] == color:
+            if board[x][y] == color \
+                    and board[x + 1][y + 1] == color \
+                    and board[x + 2][y + 2] == color \
+                    and board[x + 3][y + 3] == color:
                 return True
 
     return False
 
 
-
 def draw(board):
-
     def show(x):
         if x is None:
             return '_'
@@ -117,29 +128,3 @@ def draw(board):
         rows.append('\t'.join([show(board[col_idx][row_idx]) for col_idx in range(NUM_COLUMNS)]))
 
     return '\n'.join(rows)
-
-
-def clone(board):
-    return [[x for x in col] for col in board]
-
-
-def _to_int(x, current_player):
-    if x == current_player:
-        return 1
-    elif x is None:
-        return 0
-    else:
-        return -1
-
-def get_features_from_turn(current_player, board):
-    return [_to_int(x, current_player) for col in board for x in col]
-
-def get_target_from_turn(current_player, board, winner):
-    if winner==current_player:
-        return [1, 0, 0]
-    elif winner is None:
-        return [0, 0, 1]
-    else:
-        return [0, 1, 0]
-
-

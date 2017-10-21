@@ -1,5 +1,3 @@
-
-
 from abc import abstractmethod, ABCMeta
 from collections import OrderedDict
 import random
@@ -31,24 +29,12 @@ class PlayerModel(Model):
         return player_move
 
 
-# while True:
-#            to_play = randint(0, cf.NUM_COLUMNS - 1)
-#            if cf.can_play(board, to_play):
-#                return to_play
-
-
 class RandomModel(Model):
     def get_move(self, board, player):
         while True:
             to_play = random.randint(0, cf.NUM_COLUMNS - 1)
             if cf.can_play(board, to_play):
                 return to_play
-
-
-# class RandomModel(Model):
-#    def get_move(self, board, player):
-#        computer_move = randint(0, cf.NUM_COLUMNS - 1)
-#        return computer_move
 
 
 class AI(Model):
@@ -81,7 +67,7 @@ class AI(Model):
             if cf.can_play(board, i):
                 b = cf.clone(board)
                 cf.play(b, i, player)
-                features = cf.get_features_from_turn(player, b)
+                features = get_features_from_turn(player, b)
                 win_prob = self.get_probabilities(features)[0][0]
                 possible_moves[i] = win_prob
 
@@ -110,7 +96,7 @@ def load_model(model_name):
     if model_name == 'random':
         return RandomModel()
     else:
-        raise NotImplementedError()
+        return AI(model_name)
 
 
 def play_game(red, yellow):
@@ -163,8 +149,24 @@ def play_game(red, yellow):
         else:
             pass
 
-# while True:
-#            to_play = randint(0, cf.NUM_COLUMNS-1)
-#
-#            if cf.can_play(board, to_play):
-#                break
+
+def get_features_from_turn(current_player, board):
+    return [_to_int(x, current_player) for col in board for x in col]
+
+
+def _to_int(x, current_player):
+    if x == current_player:
+        return 1
+    elif x is None:
+        return 0
+    else:
+        return -1
+
+
+def get_target_from_turn(current_player, board, winner):
+    if winner == current_player:
+        return [1, 0, 0]
+    elif winner is None:
+        return [0, 0, 1]
+    else:
+        return [0, 1, 0]

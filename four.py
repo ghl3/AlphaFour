@@ -7,10 +7,17 @@ import ai
 
 
 def main():
-
     parser = argparse.ArgumentParser(description='General Tools')
 
     subparsers = parser.add_subparsers(help='Sub options')
+
+    # Parser to play a game against the computer
+    play_parser = subparsers.add_parser('play', help='Play a game against an AI')
+
+    play_parser.add_argument('--ai', type=str, default='random',
+                             help='The AI model to play against')
+
+    play_parser.set_defaults(func=play)
 
     # Parser to simulate a game
     sim_parser = subparsers.add_parser('simulate', help='Simulate a game')
@@ -34,8 +41,49 @@ def main():
 
     vis_parser.set_defaults(func=visualize)
 
+    # Parser to generate training data
+    play_parser = subparsers.add_parser('process', help='Process a list of games into training data for a model')
+
+    play_parser.add_argument('games', nargs='+',
+                             help='The games used to generate the training data')
+
+    play_parser.add_argument('--output-prefix', required=True, type=str,
+                             help='The output prefix for the generated features, targets files')
+
+    play_parser.set_defaults(func=process)
+
+    # Parse and determine what to do
     args = parser.parse_args()
     args.func(args)
+
+
+def play(args):
+    player = cf.RED
+    computer = cf.YELLOW
+
+    model = ai.load_model(args.ai)
+
+    board = cf.create_board()
+
+    while True:
+
+        print cf.draw(board)
+        print "\t".join(map(str, range(0, 7)))
+        player_move = input('Next move (Enter 0-7): \n')
+
+        board = cf.play(board, player_move, player)
+
+        if cf.is_winner(board, player):
+            print cf.draw(board)
+            print "PLAYER WINS"
+            return
+
+        computer_move = model.get_move(board, computer)
+        board = cf.play(board, computer_move, computer)
+        if cf.is_winner(board, computer):
+            print cf.draw(board)
+            print "COMPUTER WINS"
+            return
 
 
 def simulate(args):
@@ -71,7 +119,6 @@ def visualize(args):
         data = json.loads(f.read())
 
     for idx, turn in enumerate(data['turns']):
-
         print "Turn: {} {}".format(idx, turn['player'])
         print cf.draw(turn['board'])
         print "Move: {}->{}".format(turn['player'], turn['move'])
@@ -81,37 +128,45 @@ def visualize(args):
     print cf.draw(data['final'])
 
 
-def get_features_from_game(player_board_pairs, winner):
+def get_features_from_game(turns, winner):
     # The current player's disks ar 1
     # opponent player's disks are 0
 
     game_features = []
     game_targets = []
-    for current, board in player_board_pairs:
-        features = cf.get_features_from_turn(current, board)
-        target = cf.get_target_from_turn(current, board, winner)
+    for turn in turns:
+        features = ai.get_features_from_turn(turn['player'], turn['board'])
+        target = ai.get_target_from_turn(turn['player'], turn['board'], winner)
         game_features.append(features)
         game_targets.append(target)
 
     return game_features, game_targets
 
 
-def generate_training_data(num_games=1000):
+def process(args):
     all_features = []
     all_targets = []
 
-    for i in range(num_games):
+    for game_file in args.games:
+        with open(game_file) as f:
+            game_data = json.loads(f.read())
 
-        if i % 1000 == 0:
-            print "Generating Game: {}".format(i)
+            game_features, game_targets = get_features_from_game(game_data['turns'], game_data['winner'])
+            all_features.extend(game_features)
+            all_targets.extend(game_targets)
 
-        plays, winner = random_game()
+    # Features are saved as a CSV
 
-        game_features, game_targets = get_features_from_game(plays, winner)
-        all_features.extend(game_features)
-        all_targets.extend(game_targets)
+    with open('{}features.csv'.format(args.output_prefix), 'w+') as f:
+        for row in all_features:
+            f.write(','.join([str(i) for i in row]))
+            f.write('\n')
 
-    return all_features, all_targets
+    with open('{}targets.csv'.format(args.output_prefix), 'w+') as f:
+        for row in all_targets:
+            f.write(','.join([str(i) for i in row]))
+            f.write('\n')
+
 
 
 if __name__ == '__main__':
