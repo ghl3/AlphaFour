@@ -166,9 +166,11 @@ def process(args):
             with open(file) as f:
                 game_data = json.loads(f.read())
 
+                # We add the game index as the 0th feature
+                # so we can do fully out-of-sample validation
                 game_features, game_targets = get_features_from_game(game_data['turns'], game_data['winner'])
-                all_features.extend(game_features)
-                all_targets.extend(game_targets)
+                all_features.extend([[idx] + fs for fs in game_features])
+                all_targets.extend([[idx] + ts for ts in game_targets])
 
     # Features are saved as a CSV
 
