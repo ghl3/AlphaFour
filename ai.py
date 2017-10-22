@@ -60,7 +60,7 @@ class AI(Model):
 
     def get_move(self, board, player):
 
-        possible_moves = OrderedDict()
+        possible_moves = np.zeros(cf.NUM_COLUMNS)
 
         for i in range(0, cf.NUM_COLUMNS):
 
@@ -72,21 +72,21 @@ class AI(Model):
         return AI.get_best_move(possible_moves)
 
     @staticmethod
+    def softmax(probs, theta):
+        ps = np.exp(probs * theta)
+        ps /= np.sum(ps)
+        return ps
+
+    @staticmethod
     def get_best_move(possible_moves):
 
-        max_prob = None
-        best_move = None
-
-        for move, prob in possible_moves.iteritems():
-            if max_prob:
-                if prob > max_prob:
-                    max_prob = prob
-                    best_move = move
-            else:
-                max_prob = prob
-                best_move = move
-
-        return best_move
+        # Use an aggressive softmax to turn the
+        # probability of winning GIVEN a move into
+        # a probability of doing each move.
+        # We could be fully greedy here instead
+        # but we add randomness for exploration
+        move_probability = AI.softmax(possible_moves, theta=25)
+        return np.random.choice(range(0, cf.NUM_COLUMNS), p=move_probability)
 
 
 def load_model(model_name):

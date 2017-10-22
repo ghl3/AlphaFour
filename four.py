@@ -75,7 +75,6 @@ def main():
 
 
 def play(args):
-
     if args.player_first:
         player = cf.RED
         red_model = ai.PlayerModel()
@@ -89,23 +88,37 @@ def play(args):
 
     # Alternate between Red/Yellow
 
+    current_player = cf.RED
+    current_model = red_model
+
     while True:
 
-        red_move = red_model.get_move(board, cf.RED)
-        board = cf.play(board, red_move, cf.RED)
+        move = current_model.get_move(board, current_player)
+        board = cf.play(board, move, current_player)
 
         if cf.is_winner(board, cf.RED):
             print cf.draw(board)
             print "RED ({}) WINS".format('PLAYER' if player == cf.RED else 'COMPUTER')
             return
-
-        yellow_move = yellow_model.get_move(board, cf.YELLOW)
-        board = cf.play(board, yellow_move, cf.YELLOW)
-
-        if cf.is_winner(board, cf.RED):
+        elif cf.is_winner(board, cf.YELLOW):
             print cf.draw(board)
             print "YELLOW ({}) WINS".format('PLAYER' if player == cf.YELLOW else 'COMPUTER')
             return
+        elif cf.is_tie(board):
+            print cf.draw(board)
+            print "TIE GAME"
+            return
+        else:
+            current_player = cf.YELLOW if current_player == cf.RED else cf.RED
+            current_model = yellow_model if current_player == cf.YELLOW else red_model
+
+            # yellow_move = yellow_model.get_move(board, cf.YELLOW)
+            # board = cf.play(board, yellow_move, cf.YELLOW)
+
+            # if cf.is_winner(board, cf.RED):
+            #    print cf.draw(board)
+            #    print "YELLOW ({}) WINS".format('PLAYER' if player == cf.YELLOW else 'COMPUTER')
+            #    return
 
 
 def simulate(args):
@@ -133,10 +146,6 @@ def simulate(args):
         with open(output_file, 'w+') as f:
             f.write(json.dumps(data))
             f.write('\n')
-
-            # game_features, game_targets = get_features_from_game(plays, winner)
-            # all_features.extend(game_features)
-            # all_targets.extend(game_targets)
 
     print "All Games Run.  Saved to: {}".format(prefix_base_path)
 
