@@ -1,22 +1,19 @@
 
 
 
-Components:
+Steps:
 
-- Simulation (computer vs computer)
+- Simulation: Create games by simulating computer vs computer matches.  Pick the AI for each player.  Initially, this must be random vs random
 
-- Interactive Game Playing (computer vs human)
+- Visualize: View an existing saved game
 
-- Training (building neural netowrk)
+- Process: Convert a set of saved games into training data suitable for the neural network
+
+- Train: Using the juypyter notebook, train a model on the data
+
+- Play: Play against a trained model
 
 
+The executable to do all of the above is:
 
-Files:
-
-- ConnectFour.py: The actual game, coded in python.
-
-- play.py: Start an Interactive Game (compuer vs Human)
-
-- simulate.py: Run a number of simulation games between two different models
-
-- extract_features.py: Takes a directory of model runs and convers them into features
+python four.py
