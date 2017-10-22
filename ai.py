@@ -65,13 +65,10 @@ class AI(Model):
         for i in range(0, cf.NUM_COLUMNS):
 
             if cf.can_play(board, i):
-                b = cf.clone(board)
-                cf.play(b, i, player)
-                features = get_features_from_turn(player, b)
+                features = get_features_from_turn(player, cf.play(board, i, player))
                 win_prob = self.get_probabilities(features)[0][0]
                 possible_moves[i] = win_prob
 
-        print "Possible Moves", possible_moves
         return AI.get_best_move(possible_moves)
 
     @staticmethod
@@ -163,7 +160,7 @@ def _to_int(x, current_player):
         return -1
 
 
-def get_target_from_turn(current_player, board, winner):
+def get_target_from_turn(current_player, winner):
     if winner == current_player:
         return [1, 0, 0]
     elif winner is None:
