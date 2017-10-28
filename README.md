@@ -1,7 +1,7 @@
 
 
 
-Steps:
+# Steps
 
 - Simulation: Create games by simulating computer vs computer matches.  Pick the AI for each player.  Initially, this must be random vs random
 
@@ -17,3 +17,21 @@ Steps:
 The executable to do all of the above is:
 
 python four.py
+
+
+
+# Datasets
+
+random-2017-10-21-13:41:47
+- 100,000 games
+- 2,069,421 rows
+- Random vs Random
+
+
+
+# Models
+
+gen-1-cov2d_beta_2017_10_22_142925
+
+- 145,558 rows
+- beta_2017_10_22_142925 vs beta_2017_10_22_142925
