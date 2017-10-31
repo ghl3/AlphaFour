@@ -68,23 +68,11 @@ class DataLoader(object):
             train_games = games.sample(frac=self.frac_train)
             test_games = games.loc[~games.index.isin(train_games.index)]
 
-            #train_games = pd.Series(features.game_idx.unique()).sample(frac=self.frac_train).values
-
-              #.drop(['game_idx', 'turn_idx'], axis=1)
             features_train = features[features.game_idx.isin(train_games)].assign(name=name).set_index(['name', 'game_idx', 'turn_idx'])
             targets_train = targets[targets.game_idx.isin(train_games)].drop(['game_idx', 'turn_idx'], axis=1).set_index(features_train.index)
 
-              #.drop(['game_idx', 'turn_idx'], axis=1)
             features_test = features[features.game_idx.isin(test_games)].assign(name=name).set_index(['name', 'game_idx', 'turn_idx'])
-            targets_test = targets[targets.game_idx.isin(test_games)].drop(['game_idx', 'turn_idx'], axis=1).set_index(features_test.index)  #.drop(['game_idx', 'turn_idx'], axis=1)
-
-            #tidx = list(features_train.index)
-            #random.shuffle(tidx)
-            #features_train = features_train.loc[tidx]
-            #targets_train = targets_train.loc[tidx]
-
-            #features_test = features[~features.game_idx.isin(train_games)].drop(['game_idx', 'turn_idx'], axis=1)
-            #targets_test = targets[~targets.game_idx.isin(train_games)].drop(['game_idx', 'turn_idx'], axis=1)
+            targets_test = targets[targets.game_idx.isin(test_games)].drop(['game_idx', 'turn_idx'], axis=1).set_index(features_test.index)
 
             X_trains.append(features_train)
             y_trains.append(targets_train)
@@ -96,49 +84,12 @@ class DataLoader(object):
         y_train = pd.concat(y_trains).loc[X_train.index]
         X_test = pd.concat(X_tests).sample(frac=1)
         y_test = pd.concat(y_tests).loc[X_test.index]
-            
+
         return Dataset(
             X_train,
             y_train,
             X_test,
             y_test)
-#            X_train.
-#            pd.concat(X_trains),
-#            pd.concat(y_trains),
-#            pd.concat(X_tests),
-#            pd.concat(y_tests))
-            
-#    return features, targets, features_train, targets_train, features_test, targets_test
-            
-
-
-
-        
-def load_data(prefix):
-    features = pd.read_csv('{}/features.csv'.format(prefix),
-                           names=['game_idx', 'turn_idx'] + range(42),
-                           dtype='int')
-
-    targets = pd.read_csv('{}/targets.csv'.format(prefix),
-                          names=['game_idx', 'turn_idx', 'win', 'lose', 'draw'],
-                          dtype='int')
-
-    # Split into training and holdout,
-    # ensuring separate games
-    train_games = pd.Series(features.game_idx.unique()).sample(frac=0.8).values #games = #features.game_idx.unique()
-
-    features_train = features[features.game_idx.isin(train_games)].drop(['game_idx', 'turn_idx'], axis=1)
-    targets_train = targets[targets.game_idx.isin(train_games)].drop(['game_idx', 'turn_idx'], axis=1)
-
-    tidx = list(features_train.index)
-    random.shuffle(tidx)
-    features_train = features_train.loc[tidx]
-    targets_train = targets_train.loc[tidx]
-
-    features_test = features[~features.game_idx.isin(train_games)].drop(['game_idx', 'turn_idx'], axis=1)
-    targets_test = targets[~targets.game_idx.isin(train_games)].drop(['game_idx', 'turn_idx'], axis=1)
-
-    return features, targets, features_train, targets_train, features_test, targets_test
 
 
 def get_batch_iter(batch_size, batch_idx, dfs):
@@ -171,7 +122,6 @@ def get_batch(batch_size, batch_idx, dfs, how='iter'):
         raise Exception()
 
 
-
 def get_batch_iter(batch_size, batch_idx, dfs):
 
     length = len(dfs[0])
@@ -200,8 +150,6 @@ def get_batch(batch_size, batch_idx, dfs, how='iter'):
         return get_batch_random(batch_size, batch_idx, dfs)
     else:
         raise Exception()
-
-
 
 
 def train(graph, output_prefix, dataset,
@@ -246,19 +194,17 @@ def train(graph, output_prefix, dataset,
                 summary = sess.run(all_summaries, feed_dict={board: dataset.X_test, outcome: dataset.y_test})
                 train_writer.add_summary(summary, i)
 
-                #summary, acc_val, loss_val = sess.run([all_summaries, accuracy, loss], feed_dict={board: dataset.X_test, outcome: dataset.y_test})
-                acc_val = accuracy.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test}).mean()
+                acc_val = accuracy.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test})
                 loss_val = loss.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test})
 
-                #acc = accuracy.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test}).mean()
-                print "Batch {:8} Hold-Out Accuracy: {:.4f} Loss: {:.4f} Time taken: {:.1f}s".format(i, acc_val.mean(), loss_val.mean(), delta_t)
-
+                print "Batch {:8} Hold-Out Accuracy: {:.4f} ({:d}/{:d}) Loss: {:.4f} Time taken: {:.1f}s".format(i, acc_val.mean(), int(acc_val.sum()), int(acc_val.size),
+                                                                                                             loss_val.mean(), delta_t)
 
             batch = get_batch(batch_size, i, [dataset.X_train, dataset.y_train], how=batch_how)
             train_step.run(feed_dict={board: batch[0], outcome: batch[1]})
 
-        print "DONE TRAINING"
-        print "FINAL ACCURACY: {:.4f} FINAL LOSS: {:.4f}".format(acc_val, loss_val)
+        print "\nDONE TRAINING"
+        print "FINAL ACCURACY: {:.4f} FINAL LOSS: {:.4f}".format(acc_val.mean(), loss_val.mean())
         train_writer.close()
 
         model_dir = '{}/model'.format(output_prefix)
