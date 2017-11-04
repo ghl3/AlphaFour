@@ -164,13 +164,15 @@ def train(graph, output_prefix, dataset,
 
     board = graph.get_tensor_by_name('board:0')
     outcome = graph.get_tensor_by_name('outcome:0')
-    all_summaries = graph.get_tensor_by_name('Merge/MergeSummary:0')
 
     loss = graph.get_tensor_by_name('evaluation/loss:0')
     accuracy = graph.get_tensor_by_name('evaluation/accuracy:0')
 
     init_op = graph.get_operation_by_name('init')
     train_step = graph.get_operation_by_name('training/train_step')
+
+    holdout_summaries = graph.get_tensor_by_name('evaluation/holdout_summaries:0')
+    batch_summaries = graph.get_tensor_by_name('evaluation/batch_summaries:0')
 
     with tf.Session(graph=graph) as sess:
 
@@ -186,25 +188,33 @@ def train(graph, output_prefix, dataset,
 
         for i in range(num_batches):
 
-            if i % 1000 == 0:
+            batch = get_batch(batch_size, i, [dataset.X_train, dataset.y_train], how=batch_how)
+            train_step.run(feed_dict={board: batch[0], outcome: batch[1]})
+
+            # Every 1000th or the last batch
+            if i % 1000 == 0 or i == num_batches-1:
 
                 delta_t = time.time() - t
                 t = time.time()
 
-                summary = sess.run(all_summaries, feed_dict={board: dataset.X_test, outcome: dataset.y_test})
-                train_writer.add_summary(summary, i)
+                (holdout_loss, holdout_accuracy, holdout_info) = sess.run([loss, accuracy, holdout_summaries], feed_dict={board: dataset.X_test, outcome: dataset.y_test})
+                train_writer.add_summary(holdout_info, i)
 
-                acc_val = accuracy.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test})
-                loss_val = loss.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test})
+                batch_info = sess.run(batch_summaries, feed_dict={board: batch[0], outcome: batch[1]})
+                train_writer.add_summary(batch_info, i)
 
-                print "Batch {:8} Hold-Out Accuracy: {:.4f} ({:d}/{:d}) Loss: {:.4f} Time taken: {:.1f}s".format(i, acc_val.mean(), int(acc_val.sum()), int(acc_val.size),
-                                                                                                             loss_val.mean(), delta_t)
+                print "Batch {:8} Hold-Out Accuracy: {:.4f} Loss: {:.4f} Time taken: {:.1f}s".format(i, holdout_accuracy, holdout_loss, delta_t)
 
-            batch = get_batch(batch_size, i, [dataset.X_train, dataset.y_train], how=batch_how)
-            train_step.run(feed_dict={board: batch[0], outcome: batch[1]})
+                #batch_info = sess.run(batch_summaries, feed_dict={board: batch[0], outcome: batch[1]})
+                #train_writer.add_summary(batch_info, i)
 
-        print "\nDONE TRAINING"
-        print "FINAL ACCURACY: {:.4f} FINAL LOSS: {:.4f}".format(acc_val.mean(), loss_val.mean())
+                #print holdout_info
+
+                #acc_val = accuracy.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test})
+                #loss_val = loss.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test})
+
+        print "\nDONE TRAINING: {}".format(i)
+        print "FINAL ACCURACY: {:.4f} FINAL LOSS: {:.4f}".format(holdout_accuracy, holdout_loss)
         train_writer.close()
 
         model_dir = '{}/model'.format(output_prefix)
