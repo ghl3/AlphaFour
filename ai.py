@@ -42,7 +42,7 @@ class AI(Model):
     A model that wraps a Tensorflow Model for AI
     """
 
-    def __init__(self, model_path):
+    def __init__(self, model_path, greedy=False):
         graph = tf.Graph()
         sess = tf.Session(graph=graph)
         with graph.as_default() as g:
@@ -51,6 +51,7 @@ class AI(Model):
             prediction = graph.get_operation_by_name("preds/Softmax").values()[0]
             board = graph.get_operation_by_name("board").values()[0]
 
+        self.greedy = greedy
         self.sess = sess
         self.board = board
         self.prediction = prediction
@@ -69,7 +70,7 @@ class AI(Model):
                 win_prob = self.get_probabilities(features)[0][0]
                 possible_moves[i] = win_prob
 
-        return AI.get_best_move(possible_moves)
+        return self.get_best_move(possible_moves)
 
     @staticmethod
     def softmax(probs, theta):
@@ -77,23 +78,24 @@ class AI(Model):
         ps /= np.sum(ps)
         return ps
 
-    @staticmethod
-    def get_best_move(possible_moves):
-
+    def get_best_move(self, possible_moves):
         # Use an aggressive softmax to turn the
         # probability of winning GIVEN a move into
         # a probability of doing each move.
         # We could be fully greedy here instead
         # but we add randomness for exploration
         move_probability = AI.softmax(possible_moves, theta=25)
-        return np.random.choice(range(0, cf.NUM_COLUMNS), p=move_probability)
+        if self.greedy:
+            return np.argmax(move_probability)
+        else:
+            return np.random.choice(range(0, cf.NUM_COLUMNS), p=move_probability)
 
 
-def load_model(model_name):
+def load_model(model_name, *args, **kwargs):
     if model_name == 'random':
         return RandomModel()
     else:
-        return AI(model_name)
+        return AI(model_name, *args, **kwargs)
 
 
 def play_game(red, yellow):

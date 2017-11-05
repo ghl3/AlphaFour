@@ -75,14 +75,15 @@ def main():
 
 
 def play(args):
+
     if args.player_first:
         player = cf.RED
         red_model = ai.PlayerModel()
-        yellow_model = ai.load_model(args.ai)
+        yellow_model = ai.load_model(args.ai, greedy=True)
     else:
         player = cf.YELLOW
         yellow_model = ai.PlayerModel()
-        red_model = ai.load_model(args.ai)
+        red_model = ai.load_model(args.ai, greedy=True)
 
     board = cf.create_board()
 

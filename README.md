@@ -49,7 +49,6 @@ gen2-cov2d_beta_2017_10_30_201357
 -  Includes 4 layers of dense: 512, 256, 128, 12
 
 
-
 gen-1-cov2d_beta_2017_10_22_142925
 
 - Old Champion.  Cannot reproduce...
