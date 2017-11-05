@@ -40,7 +40,7 @@ class DataLoader(object):
         self._sizes.append(num_games)
         return self
 
-    def load(self):
+    def load(self, random_state=12):
 
         X_trains = []
         y_trains = []
@@ -64,8 +64,9 @@ class DataLoader(object):
             if count is None:
                 games = pd.Series(features.game_idx.unique())
             else:
-                games = pd.Series(features.game_idx.unique()).sample(n=count)
-            train_games = games.sample(frac=self.frac_train)
+                games = pd.Series(features.game_idx.unique()).sample(n=count, random_state=random_state)
+
+            train_games = games.sample(frac=self.frac_train, random_state=random_state)
             test_games = games.loc[~games.index.isin(train_games.index)]
 
             features_train = features[features.game_idx.isin(train_games)].assign(name=name).set_index(['name', 'game_idx', 'turn_idx'])
@@ -79,10 +80,10 @@ class DataLoader(object):
             X_tests.append(features_test)
             y_tests.append(targets_test)
 
-
-        X_train = pd.concat(X_trains).sample(frac=1)
+        # Shuffle the data
+        X_train = pd.concat(X_trains).sample(frac=1, random_state=random_state)
         y_train = pd.concat(y_trains).loc[X_train.index]
-        X_test = pd.concat(X_tests).sample(frac=1)
+        X_test = pd.concat(X_tests).sample(frac=1, random_state=random_state)
         y_test = pd.concat(y_tests).loc[X_test.index]
 
         return Dataset(
@@ -122,38 +123,8 @@ def get_batch(batch_size, batch_idx, dfs, how='iter'):
         raise Exception()
 
 
-def get_batch_iter(batch_size, batch_idx, dfs):
-
-    length = len(dfs[0])
-    for df in dfs:
-        assert len(df) == length
-
-    batches_per_df = int(math.ceil(length / batch_size))
-
-    local_idx = batch_idx % batches_per_df
-
-    start = local_idx*batch_size
-    end = (local_idx+1)*batch_size
-
-    return [df.iloc[start:end] for df in dfs]
-
-
-def get_batch_random(batch_size, _, dfs):
-    mask = pd.Series(dfs[0].index).sample(n=batch_size, replace=False)
-    return [df.loc[mask] for df in dfs]
-
-
-def get_batch(batch_size, batch_idx, dfs, how='iter'):
-    if how == 'iter':
-        return get_batch_iter(batch_size, batch_idx, dfs)
-    elif how == 'random':
-        return get_batch_random(batch_size, batch_idx, dfs)
-    else:
-        raise Exception()
-
-
 def train(graph, output_prefix, dataset,
-          batch_size, num_batches, batch_how='iter'):
+          batch_size, epoch_size=240000, num_epochs=15, batch_how='iter'):
 
     # To be run, a graph must have the following:
     # - Tensor: board:0
@@ -174,6 +145,9 @@ def train(graph, output_prefix, dataset,
     holdout_summaries = graph.get_tensor_by_name('evaluation/holdout_summaries:0')
     batch_summaries = graph.get_tensor_by_name('evaluation/batch_summaries:0')
 
+    assert epoch_size % batch_size == 0, "Batch Size must divide epoch size"
+    num_batches = epoch_size * num_epochs // batch_size
+
     with tf.Session(graph=graph) as sess:
 
         K.set_session(sess)
@@ -186,38 +160,33 @@ def train(graph, output_prefix, dataset,
         t = time.time()
         delta_t = 0
 
-        for i in range(num_batches):
+        for i in range(0, num_batches+1):
 
             batch = get_batch(batch_size, i, [dataset.X_train, dataset.y_train], how=batch_how)
             train_step.run(feed_dict={board: batch[0], outcome: batch[1]})
 
-            # Every 1000th or the last batch
-            if i % 1000 == 0 or i == num_batches-1:
+            if i * batch_size % epoch_size == 0:
+
+                epoch_idx = i * batch_size // epoch_size
 
                 delta_t = time.time() - t
                 t = time.time()
 
                 (holdout_loss, holdout_accuracy, holdout_info) = sess.run([loss, accuracy, holdout_summaries], feed_dict={board: dataset.X_test, outcome: dataset.y_test})
-                train_writer.add_summary(holdout_info, i)
+                train_writer.add_summary(holdout_info, epoch_idx)
 
                 batch_info = sess.run(batch_summaries, feed_dict={board: batch[0], outcome: batch[1]})
-                train_writer.add_summary(batch_info, i)
+                train_writer.add_summary(batch_info, epoch_idx)
 
-                print "Batch {:8} Hold-Out Accuracy: {:.4f} Loss: {:.4f} Time taken: {:.1f}s".format(i, holdout_accuracy, holdout_loss, delta_t)
+                print "Epoch {:2} Num Batches {:4} Num Rows: {:10} Hold-Out Accuracy: {:.4f} Loss: {:.4f} Time taken: {:.1f}s".format(epoch_idx,
+                                                                                                                               i,
+                                                                                                                               i*batch_size,
+                                                                                                                               holdout_accuracy, holdout_loss, delta_t)
 
-                #batch_info = sess.run(batch_summaries, feed_dict={board: batch[0], outcome: batch[1]})
-                #train_writer.add_summary(batch_info, i)
-
-                #print holdout_info
-
-                #acc_val = accuracy.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test})
-                #loss_val = loss.eval(feed_dict={board: dataset.X_test, outcome: dataset.y_test})
-
-        print "\nDONE TRAINING: {}".format(i)
-        print "FINAL ACCURACY: {:.4f} FINAL LOSS: {:.4f}".format(holdout_accuracy, holdout_loss)
+        print "\nFINAL ACCURACY: {:.4f} FINAL LOSS: {:.4f}".format(holdout_accuracy, holdout_loss)
         train_writer.close()
 
         model_dir = '{}/model'.format(output_prefix)
-        print "SAVING TO: {}".format(model_dir)
+        print "SAVING MODEL TO: {}".format(model_dir)
         tf.train.Saver().save(sess, model_dir)
 
