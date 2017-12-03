@@ -1,56 +1,49 @@
 
+# AlphaFour
+
+Scripts and notebooks for playing, simulating, and building AIs for the game ConnectFour
+
+There are two main components to this repository:
+- The `four.py` script, which allows you to play ConnectFour, as well as simulate games and process data
+- The `training.ipynb`, which generates ConnectFour "AI" models using TensorFlow
 
 
-# Steps
+## Four.py
 
-- Simulation: Create games by simulating computer vs computer matches.  Pick the AI for each player.  Initially, this must be random vs random
+`four.py` is a command-line script that provides the following capabilities:
 
-- Visualize: View an existing saved game
+This repository is designed to support the following steps
 
-- Process: Convert a set of saved games into training data suitable for the neural network
-
-- Train: Using the juypyter notebook, train a model on the data
-
-- Play: Play against a trained model
-
-
-The executable to do all of the above is:
-
-python four.py
+- `play`: Play a game of ConnectFour again an existing AI
+- `simulate`: Simulate a game between AIs and save it as data
+- `visualize`: Visualize a saved game
+- `process`: Process a saved game into a data format suitable for model training 
 
 
-# Datasets
+## Training.ipynb
 
-random-2017-10-28-17:13:04
-- 500,000 games
-- Random vs Random
+An jupyter notebook that reads in the processed form of games simulated using `four.py`, trains tensorflow models on them, and serializes the models out.  A serialized tensforflow AI can then be used to play games or simulate new games using `four.py`
 
 
-gen1-cov2d_alpha_2017_10_29_150829-2017-10-29-16:57:41
-- 100,000 games
-- cov2d_alpha_2017_10_29_150829 vs itself
+## Typical Workflows:
+
+Simulate games and process them into training data using as "RANDOM" AI
+
+```
+python four.py simulate --num-games 500000 --output-prefix simulations/random-`date '+%Y-%m-%d-%H:%M:%S'`/
+python four.py process --output-prefix training_data/random-2017-10-21-13:41:47/ "simulations/random-2017-10-28-17:13:04/*.json"
+```
+
+Simulate games and process them into training data using an AI built with Tensorflow
+
+```
+python four.py simulate --num-games 100000 --red-model gen1-cov2d_beta_2017_10_29_150829 --yellow-model gen1-cov2d_beta_2017_10_29_150829 --output-prefix simulations/gen1-cov2d_beta_2017_10_29_150829-`date '+%Y-%m-%d-%H:%M:%S'`/
+python four.py process --output-prefix training_data/gen-1-cov2d_beta_2017_10_22_142925/ "simulations/gen-1-cov2d_beta_2017_10_22_142925/*.json"
+```
+
+Play against our built and serialized AI model
 
 
-
-# Models
-
-gen1-cov2d_alpha_2017_10_29_150829
-
-- Dataset: 'random-2017-10-28-17:13:04'
-- Params: batch_size=500, learning_rate=0.001, regularization=(l1_l2, 1.0)
--  Includes all convolutions (adding cc, cf, cg, ch)
--  Includes 4 layers of dense: 512, 256, 128, 12
-
-
-gen2-cov2d_beta_2017_10_30_201357
-- Dataset: gen1-cov2d_alpha_2017_10_29_150829-2017-10-29-16:57:41
-- Params: batch_size=250, learning_rate=0.0001, regularization=(l1_l2, 1.0)
--  Includes all convolutions (adding cc, cf, cg, ch)
--  Includes 4 layers of dense: 512, 256, 128, 12
-
-
-gen-1-cov2d_beta_2017_10_22_142925
-
-- Old Champion.  Cannot reproduce...
-
-
+```
+python four.py play --ai gen2-cov2d_beta_2017_11_05_114919 --player-first false
+```
