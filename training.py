@@ -144,10 +144,6 @@ def train(graph, output_prefix, dataset,
 
     holdout_summaries = graph.get_tensor_by_name('evaluation/holdout_summaries:0')
     batch_summaries = graph.get_tensor_by_name('evaluation/batch_summaries:0')
-    #misc_summaries = graph.get_tensor_by_name('misc_summaries:0')
-
-    #epoch_idx = graph.get_tensor_by_name('training/epoch_idx:0')
-    #increment_epoch_idx = graph.get_operation_by_name('training/increment_epoch_idx')
 
     assert epoch_size % batch_size == 0, "Batch Size must divide epoch size"
     num_batches = epoch_size * num_epochs // batch_size
@@ -173,7 +169,6 @@ def train(graph, output_prefix, dataset,
             if i * batch_size % epoch_size == 0:
 
                 epoch_idx = i * batch_size // epoch_size
-                #sess.run(increment_epoch_idx)
 
                 delta_t = time.time() - t
                 t = time.time()
@@ -184,13 +179,15 @@ def train(graph, output_prefix, dataset,
                 batch_info = sess.run(batch_summaries, feed_dict={board: batch[0], outcome: batch[1]})
                 train_writer.add_summary(batch_info, epoch_idx)
 
-                #misc_info = sess.run(misc_summaries)
-                #train_writer.add_summary(misc_info, epoch_idx)
-
-                print "Epoch {:2} Num Batches {:4} Num Rows: {:10} Hold-Out Accuracy: {:.4f} Loss: {:.4f} Time taken: {:.1f}s".format(epoch_idx,
-                                                                                                                                      i,
-                                                                                                                                      i*batch_size,
-                                                                                                                                      holdout_accuracy, holdout_loss, delta_t)
+                print "Epoch {:2}" \
+                      "Num Batches {:4}" \
+                      "Num Rows: {:10} " \
+                      "Hold-Out Accuracy: {:.4f}" \
+                      "Loss: {:.4f}" \
+                      "Time taken: {:.1f}s".format(epoch_idx,
+                                                   i,
+                                                   i*batch_size,
+                                                   holdout_accuracy, holdout_loss, delta_t)
 
         print "\nFINAL ACCURACY: {:.4f} FINAL LOSS: {:.4f}".format(holdout_accuracy, holdout_loss)
         train_writer.close()

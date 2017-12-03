@@ -207,8 +207,7 @@ def process(args):
 
                         # We add the game index as the 0th feature
                         # so we can do fully out-of-sample validation
-                        game_features, game_targets = get_features_from_game(
-                            game_data)  # ame_data['turns'], game_data['winner'])
+                        game_features, game_targets = get_features_from_game(game_data)
                         for turn_idx, row in enumerate(game_features):
                             feat_file.write(','.join([str(game_idx), str(turn_idx)] + [str(i) for i in row]))
                             feat_file.write('\n')
@@ -216,21 +215,6 @@ def process(args):
                         for turn_idx, row in enumerate(game_targets):
                             targ_file.write(','.join([str(game_idx), str(turn_idx)] + [str(i) for i in row]))
                             targ_file.write('\n')
-
-                            #                        all_features.extend([[idx] + fs for fs in game_features])
-                            #                        all_targets.extend([[idx] + ts for ts in game_targets])
-
-                            # Features are saved as a CSV
-
-
-# for row in all_features:
-#            f.write(','.join([str(i) for i in row]))
-#            f.write('\n')
-
-
-#        for row in all_targets:
-#            f.write(','.join([str(i) for i in row]))
-#            f.write('\n')
 
 
 def make_base_dir(prefix):
