@@ -23,11 +23,11 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 # Fields marked as "Optional" may be commented out.
 
 setup(
-    name='alphaFour',
+    name='AlphaFour',
     version='1.0.0',
     description='A python library for creating and using AIs to play ConnectFour',
-    url='https://github.com/ghl3/alphafour',
-    author='George Lewis',  # Optional
+    url='https://github.com/ghl3/AlphaFour',
+    author='George Lewis',
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -38,6 +38,6 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
+    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
 )
