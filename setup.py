@@ -21,7 +21,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 
 with open('requirements.txt', 'r') as f:
-  install_reqs = [
+  install_requires = [
       s for s in [
           line.strip(' \n') for line in f
       ] if not s.startswith('#') and s != ''
@@ -48,5 +48,5 @@ setup(
     #   py_modules=["my_module"],
     #
     packages=['alphafour'],
-    install_reqs = install_reqs,
+    install_requires = install_requires,
 )
