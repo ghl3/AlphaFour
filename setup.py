@@ -19,6 +19,15 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+
+with open('requirements.txt', 'r') as f:
+    install_reqs = [
+        s for s in [
+            line.strip(' \n') for line in f
+        ] if not s.startswith('#') and s != ''
+    ]
+
+    
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
 
@@ -39,5 +48,5 @@ setup(
     #   py_modules=["my_module"],
     #
     packages=['alphafour'],
-
+    install_reqs = install_reqs,
 )
