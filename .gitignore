@@ -8,3 +8,5 @@ models
 junk
 simulations
 training_data
+checkpoint
+models_old
