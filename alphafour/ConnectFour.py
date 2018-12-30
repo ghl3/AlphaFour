@@ -1,12 +1,12 @@
 #
 # A board is represented by a list of lists
 #
-#  board = [[row_bottom, row_1, row_2, ..., row_top],
+# board = [[row_bottom, row_1, row_2, ..., row_top],
 #           [row1, row2, row3], ...]
 #
-#  The board is always full, but empty spaces are
-#  None
+# The board is always full, but empty spaces are None.
 #
+# Each non-null element will be one of two values (typically the strings 'R' and 'Y').
 #
 # The first index picks a column
 # The second index picks a row

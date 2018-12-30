@@ -46,8 +46,8 @@ class AI(Model):
         graph = tf.Graph()
         sess = tf.Session(graph=graph)
         with graph.as_default() as g:
-            saver = tf.train.import_meta_graph('./models/{}/model.meta'.format(model_path))
-            saver.restore(sess, tf.train.latest_checkpoint('./models/{}/'.format(model_path)))
+            saver = tf.train.import_meta_graph(model_path+"/model.meta")
+            saver.restore(sess, tf.train.latest_checkpoint(model_path))
             prediction = graph.get_operation_by_name("preds/Softmax").values()[0]
             board = graph.get_operation_by_name("board").values()[0]
 
