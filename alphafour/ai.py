@@ -1,11 +1,8 @@
 from abc import abstractmethod, ABCMeta
-from collections import OrderedDict
 import random
 
 import numpy as np
 import ConnectFour as cf
-
-import tensorflow as tf
 
 
 class Model(object):
@@ -42,14 +39,19 @@ class AI(Model):
     A model that wraps a Tensorflow Model for AI
     """
 
-    def __init__(self, model_path, greedy=False):
+    def __init__(self, model_path, greedy=False, session_config=None):
+
+        # Don't import tensorflow at the top so that the client can control
+        # when it's imported.  This may help avoid deadlock issues...
+        import tensorflow as tf
+
         graph = tf.Graph()
-        sess = tf.Session(graph=graph)
+        sess = tf.Session(graph=graph, config=session_config)
         with graph.as_default() as g:
-            saver = tf.train.import_meta_graph(model_path+"/model.meta")
+            saver = tf.train.import_meta_graph(model_path + "/model.meta")
             saver.restore(sess, tf.train.latest_checkpoint(model_path))
-            prediction = graph.get_operation_by_name("preds/Softmax").values()[0]
-            board = graph.get_operation_by_name("board").values()[0]
+            prediction = g.get_operation_by_name("preds/Softmax").values()[0]
+            board = g.get_operation_by_name("board").values()[0]
 
         self.greedy = greedy
         self.sess = sess
